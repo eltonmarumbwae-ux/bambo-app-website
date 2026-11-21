@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delete your account | Bambo</title>
+<meta name="description" content="Delete your account for the Bambo app.">
+<link rel="stylesheet" href="style.css">
+</head><body>
+<header><div class="bar">
+<a class="brand" href="index.html">Bambo</a>
+<a class="nav" href="privacy.html">Privacy policy</a>
+<a class="nav" href="terms.html">Terms of use</a>
+<a class="nav" href="delete-account.html">Delete account</a>
+</div></header>
+<main>
+<h1>Delete your Bambo account</h1>
+<p class="muted">Bambo, by Bambo Tech</p>
+<p>You can delete your account and all your data. <b>This is permanent and cannot be undone.</b></p>
+
+<div class="card">
+<h3>Option 1: inside the app</h3>
+<ol>
+<li>Open Bambo and log in.</li>
+<li>Tap your profile, then the menu / <b>Settings</b>.</li>
+<li>Scroll to the bottom and tap <b>Delete my account</b>.</li>
+<li>Confirm twice.</li>
+</ol>
+</div>
+
+<div class="card">
+<h3>Option 2: on this page (no app needed)</h3>
+<p>Log in with your Bambo email and password to delete your account right now.</p>
+<label for="email">Email</label>
+<input id="email" type="email" autocomplete="email" placeholder="you@example.com">
+<label for="pass">Password</label>
+<input id="pass" type="password" autocomplete="current-password">
+<div class="row"><input id="sure" type="checkbox"><label for="sure" style="margin:0;font-weight:400">I understand my account, posts, reels, messages and files will be deleted forever.</label></div>
+<label for="word">Type DELETE to confirm</label>
+<input id="word" type="text" autocomplete="off" autocapitalize="characters" placeholder="DELETE">
+<button id="go" disabled>Delete my account</button>
+<div id="msg" role="status"></div>
+</div>
+
+<div class="card">
+<h3>Option 3: you cannot log in</h3>
+<p>Email <a href="mailto:eltonmarumbwae@gmail.com?subject=Delete%20my%20Bambo%20account">eltonmarumbwae@gmail.com</a> from the email address you signed up with, with the subject "Delete my Bambo account" and your username. We will confirm it is you and delete your account within 30 days.</p>
+<p class="muted">Want to remove only some data (for example one reel or photo) and keep your account? You can delete your own posts and reels inside the app, or email us to remove specific data.</p>
+</div>
+
+<h2>What is deleted</h2>
+<ul>
+<li>Your profile: name, username, phone number, bio and picture.</li>
+<li>Your reels, photo posts, and the files you uploaded.</li>
+<li>Your messages and conversations, including the copies the other person sees.</li>
+<li>Your likes, follows and reel view records.</li>
+<li>Your subscription record in Bambo and your login (email and password).</li>
+</ul>
+<h2>What we may keep</h2>
+<ul>
+<li>Backups that are overwritten automatically as they rotate. They are not restored to the live app.</li>
+<li>Records Google Play keeps about your purchases, under Google's own policies.</li>
+<li>Minimal records only if the law requires them.</li>
+</ul>
+<div class="card">
+<h3>Have Mambo Pro?</h3>
+<p>Deleting your account does <b>not</b> cancel a Google Play subscription. Cancel it first in Google Play: Payments and subscriptions, then Subscriptions, then Mambo Pro. <a href="https://play.google.com/store/account/subscriptions">Open your Google Play subscriptions</a>.</p>
+</div>
+</main>
+<footer><div>Bambo is made by Bambo Tech, South Africa. Questions: <a href="mailto:eltonmarumbwae@gmail.com">eltonmarumbwae@gmail.com</a></div></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+  // Public values (safe on a web page): your Supabase address and publishable key
+  var SUPABASE_URL = "https://wnwwgshnalfnbzutjxct.supabase.co";
+  var SUPABASE_KEY = "sb_publishable_LZwc55aViAEe6lNX8wO0WA_SImgxV3S";
+  var $ = function (id) { return document.getElementById(id); };
+  var go = $("go"), msg = $("msg");
+  function check() { go.disabled = !($("email").value && $("pass").value && $("sure").checked && $("word").value.trim() === "DELETE"); }
+  ["email", "pass", "sure", "word"].forEach(function (id) { $(id).addEventListener("input", check); $(id).addEventListener("change", check); });
+  function say(t, ok) { msg.textContent = t; msg.className = ok ? "ok" : "bad"; }
+  go.addEventListener("click", async function () {
+    if (!window.supabase) return say("This page could not load. Check your connection or use Option 3.", false);
+    go.disabled = true; say("Deleting...", true);
+    try {
+      var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      var login = await sb.auth.signInWithPassword({ email: $("email").value.trim().toLowerCase(), password: $("pass").value });
+      if (login.error) { say("Wrong email or password. Use Option 3 if you cannot log in.", false); go.disabled = false; return; }
+      var res = await sb.functions.invoke("delete-account", { body: { confirm: true } });
+      if (res.error || !res.data || !res.data.ok) { say((res.data && res.data.error) || "We could not delete the account. Please try again or use Option 3.", false); go.disabled = false; return; }
+      try { await sb.auth.signOut(); } catch (e) {}
+      $("pass").value = ""; $("word").value = "";
+      say("Your account and data have been deleted.", true);
+    } catch (e) { say("Something went wrong. Please try again or use Option 3.", false); go.disabled = false; }
+  });
+})();
+</script>
+</body></html>
